@@ -17,9 +17,13 @@ function send(action) {
   });
 }
 
-video.addEventListener("play", () => send("play"));
-video.addEventListener("pause", () => send("pause"));
-video.addEventListener("seeked", () => send("seek"));
+const isHost = window.location.search.includes("host=true");
+
+if (isHost) {
+  video.addEventListener("play", () => send("play"));
+  video.addEventListener("pause", () => send("pause"));
+  video.addEventListener("seeked", () => send("seek"));
+}
 
 socket.on("video-sync", (data) => {
 
