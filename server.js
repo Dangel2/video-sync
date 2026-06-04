@@ -6,14 +6,22 @@ const io = require("socket.io")(http);
 app.use(express.static("public"));
 
 io.on("connection", (socket) => {
+
   socket.on("join-room", (room) => {
     socket.join(room);
   });
 
   socket.on("video-sync", (data) => {
-    io.to(data.room).emit("video-sync", data);
+
+    // enviar a todos MENOS al que originó el evento
+    socket.to(data.room).emit("video-sync", data);
+
   });
+
 });
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log("Servidor listo"));
+
+http.listen(PORT, () => {
+  console.log("Servidor listo");
+});
