@@ -1,15 +1,14 @@
 const socket = io();
 const video = document.getElementById("video");
 
+// nombre de sala desde el link
 const room = window.location.pathname.split("/")[2] || "amor";
+
+const isHost = window.location.search.includes("clave=nestor123");
 
 socket.emit("join-room", room);
 
-let syncing = false;
-
 function send(action) {
-  if (syncing) return;
-
   socket.emit("video-sync", {
     room,
     action,
@@ -17,35 +16,28 @@ function send(action) {
   });
 }
 
-const isHost = window.location.search.includes("host=true");
-
 if (isHost) {
   video.addEventListener("play", () => send("play"));
   video.addEventListener("pause", () => send("pause"));
   video.addEventListener("seeked", () => send("seek"));
 }
 
+if (!isHost) {
+  video.removeAttribute("controls");
+}
+
 socket.on("video-sync", (data) => {
-
-  syncing = true;
-
   if (data.action === "play") {
     video.currentTime = data.time;
-
-    video.play().catch(() => {});
+    video.play();
   }
 
   if (data.action === "pause") {
     video.currentTime = data.time;
-
     video.pause();
   }
 
   if (data.action === "seek") {
     video.currentTime = data.time;
   }
-
-  setTimeout(() => {
-    syncing = false;
-  }, 500);
 });
