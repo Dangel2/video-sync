@@ -6,6 +6,10 @@ const room = window.location.pathname.split("/")[2] || "amor";
 
 const isHost = window.location.search.includes("clave=nestor123");
 
+if (isHost) {
+  document.getElementById("adminPanel").style.display = "block";
+}
+
 socket.emit("join-room", room);
 
 function send(action) {
@@ -27,6 +31,9 @@ if (!isHost) {
 }
 
 socket.on("video-sync", (data) => {
+     video.src = data.url;
+     video.load();
+
   if (data.action === "play") {
     video.currentTime = data.time;
     video.play();
@@ -41,3 +48,19 @@ socket.on("video-sync", (data) => {
     video.currentTime = data.time;
   }
 });
+
+function cambiarVideo() {
+
+  const url =
+    document.getElementById("videoUrl").value;
+
+  video.src = url;
+
+  video.load();
+
+  socket.emit("video-change", {
+    room,
+    url
+  });
+
+}
