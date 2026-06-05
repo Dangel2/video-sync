@@ -17,6 +17,13 @@ io.on("connection", (socket) => {
     socket.to(data.room).emit("video-sync", data);
 
   });
+  
+  socket.on("video-change", (data) => {
+
+  socket.to(data.room)
+        .emit("video-change", data);
+
+});
 
 });
 
