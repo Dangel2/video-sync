@@ -4,7 +4,7 @@ const video = document.getElementById("video");
 const room = window.location.pathname.split("/")[2] || "amor";
 const isHost = window.location.search.includes("clave=nestor123");
 
-const VIDEO_URL = "REEMPLAZA_AQUI_TU_LINK_MP4_DIRECTO";
+const VIDEO_URL = "https://www.dropbox.com/scl/fi/nm7oktyua2cyh5w0fzsr2/Eres-Tu.mp4?rlkey=g2amnedtxjhhbegxv4yxypayv&raw=1";
 
 video.src = VIDEO_URL;
 video.load();
