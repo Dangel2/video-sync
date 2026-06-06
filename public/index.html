@@ -1,57 +1,61 @@
-const socket = io();
-const video = document.getElementById("video");
-
-const room = window.location.pathname.split("/")[2] || "amor";
-const isHost = window.location.search.includes("clave=nestor123");
-
-const VIDEO_URL = "https://www.dropbox.com/scl/fi/nm7oktyua2cyh5w0fzsr2/Eres-Tu.mp4?rlkey=g2amnedtxjhhbegxv4yxypayv&raw=1";
-
-video.src = VIDEO_URL;
-video.load();
-
-socket.emit("join-room", room);
-
-let syncing = false;
-
-function send(action) {
-  if (!isHost) return;
-  if (syncing) return;
-
-  socket.emit("video-sync", {
-    room,
-    action,
-    time: video.currentTime
-  });
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ángel ❤️ Marisela</title>
+<style>
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+color:white;
 }
-
-if (isHost) {
-  video.addEventListener("play", () => send("play"));
-  video.addEventListener("pause", () => send("pause"));
-  video.addEventListener("seeked", () => send("seek"));
+.card{
+width:90%;
+max-width:900px;
+background:rgba(255,255,255,.08);
+backdrop-filter:blur(10px);
+padding:25px;
+border-radius:20px;
+box-shadow:0 8px 30px rgba(0,0,0,.4);
+text-align:center;
 }
-
-if (!isHost) {
-  video.removeAttribute("controls");
+h1{
+margin:0;
+font-size:2.2rem;
 }
+p{
+opacity:.9;
+}
+video{
+width:100%;
+border-radius:15px;
+margin-top:15px;
+}
+.heart{
+font-size:2rem;
+animation:pulse 1.5s infinite;
+}
+@keyframes pulse{
+50%{transform:scale(1.15);}
+}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="heart">❤️</div>
+<h1>Ángel & Marisela</h1>
+<p>Miremos videos juntos y compartamos cada momento ❤️</p>
 
-socket.on("video-sync", (data) => {
-  syncing = true;
+<video id="video" controls></video>
+</div>
 
-  if (data.action === "play") {
-    video.currentTime = data.time;
-    video.play().catch(() => {});
-  }
-
-  if (data.action === "pause") {
-    video.currentTime = data.time;
-    video.pause();
-  }
-
-  if (data.action === "seek") {
-    video.currentTime = data.time;
-  }
-
-  setTimeout(() => {
-    syncing = false;
-  }, 500);
-});
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
