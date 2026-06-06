@@ -2,30 +2,60 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Película juntos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ángel ❤️ Marisela</title>
+<style>
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+color:white;
+}
+.card{
+width:90%;
+max-width:900px;
+background:rgba(255,255,255,.08);
+backdrop-filter:blur(10px);
+padding:25px;
+border-radius:20px;
+box-shadow:0 8px 30px rgba(0,0,0,.4);
+text-align:center;
+}
+h1{
+margin:0;
+font-size:2.2rem;
+}
+p{
+opacity:.9;
+}
+video{
+width:100%;
+border-radius:15px;
+margin-top:15px;
+}
+.heart{
+font-size:2rem;
+animation:pulse 1.5s infinite;
+}
+@keyframes pulse{
+50%{transform:scale(1.15);}
+}
+</style>
 </head>
 <body>
+<div class="card">
+<div class="heart">❤️</div>
+<h1>Ángel & Marisela</h1>
+<p>Miremos videos juntos y compartamos cada momento ❤️</p>
 
-<h2>Ver película juntos ❤️</h2>
-
-<div id="adminPanel" style="display:none;">
-  <input
-    id="videoUrl"
-    type="text"
-    placeholder="Pega aquí el enlace MP4"
-    style="width:300px;"
-  >
-
-  <button onclick="cambiarVideo()">
-    Cargar película
-  </button>
+<video id="video" controls></video>
 </div>
-
-<video id="video" width="700" controls>
-</video>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="script.js"></script>
-
 </body>
 </html>
