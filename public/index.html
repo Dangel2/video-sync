@@ -1,47 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Watch Party Pro</title>
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Watch Party</title>
 <style>
-body { font-family: Arial; background:#111; color:white; text-align:center;}
-#app{display:none;}
-input{padding:8px;margin:5px;}
-button{padding:6px 10px;background:#e50914;color:white;border:none;cursor:pointer;}
-#playlist li{display:flex;justify-content:space-between;padding:5px;border-bottom:1px solid #333;}
-#playlist li:hover{background:#222;}
-#messages{height:150px;overflow:auto;border:1px solid #333;padding:5px;}
-</style>
-</head>
-<body>
-
-<div id="login">
-<h2>Entrar</h2>
-<input id="usernameInput" placeholder="Tu nombre">
-<button id="joinBtn">Entrar</button>
-</div>
-
-<div id="app">
-<h2>🎬 Watch Party</h2>
-
-<div id="controls" style="display:none;">
-<input id="titleInput" placeholder="Título">
-<input id="urlInput" placeholder="YouTube URL">
-<button id="addBtn">Agregar</button>
-</div>
-
-<ul id="playlist"></ul>
-
-<div id="player"></div>
-
-<h3>Chat</h3>
-<div id="messages"></div>
-<input id="chatInput">
-<button id="sendBtn">Enviar</button>
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="https://www.youtube.com/iframe_api"></script>
-<script src="script.js"></script>
-
-</body>
-</html>
+body{font-family:Arial;background:#0f1115;color:#fff;margin:0}.wrap{max-width:1100px;margin:auto;padding:12px}
+.card{background:#1a1d24;border-radius:12px;padding:12px;margin:10px 0}
+input,button{padding:10px;border-radius:8px;border:0} button{background:#e50914;color:#fff}
+#messages{height:260px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:75%;padding:8px 12px;border-radius:14px}.left{align-self:flex-start;background:#2a2f39}.right{align-self:flex-end;background:#e50914}
+.name{font-size:11px;opacity:.8} video,iframe{width:100%;height:60vh;border:0}
+</style></head><body><div class="wrap">
+<div id="login" class="card"><input id="usernameInput" placeholder="Nombre"><button id="joinBtn">Entrar</button></div>
+<div id="app" style="display:none">
+<div id="controls" class="card" style="display:none"><input id="titleInput" placeholder="Título"><input id="urlInput" placeholder="URL de video"><button id="addBtn">Agregar</button></div>
+<div class="card"><div id="player"></div><div id="status"></div></div>
+<div class="card"><ul id="playlist"></ul></div>
+<div class="card"><div id="messages"></div><input id="chatInput"><button id="sendBtn">Enviar</button></div>
+</div></div>
+<script src="/socket.io/socket.io.js"></script><script src="https://www.youtube.com/iframe_api"></script><script src="script.js"></script></body></html>
