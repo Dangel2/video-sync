@@ -11,6 +11,7 @@ app.use(express.static('public'));
 let rooms = {};
 
 io.on('connection', (socket) => {
+
   socket.on('join-room', ({ room, username }) => {
     socket.join(room);
     socket.username = username;
@@ -25,8 +26,9 @@ io.on('connection', (socket) => {
     io.to(room).emit('playlist-update', rooms[room]);
   });
 
+  // ✅ CHAT ARREGLADO
   socket.on('chat-message', ({ room, message }) => {
-    socket.to(room).emit('chat-message', {
+    io.to(room).emit('chat-message', {
       username: socket.username,
       message
     });
@@ -34,13 +36,16 @@ io.on('connection', (socket) => {
 
   socket.on('add-video', ({ room, video }) => {
     rooms[room].playlist.push(video);
+
     io.to(room).emit('playlist-update', rooms[room]);
   });
 
   socket.on('select-video', ({ room, index }) => {
     rooms[room].currentIndex = index;
+
     io.to(room).emit('video-selected', { index });
   });
+
 });
 
 server.listen(3000, () => console.log("Server running on port 3000"));
