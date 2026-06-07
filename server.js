@@ -1,44 +1,46 @@
-const express = require("express");
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+
 const app = express();
-const http = require("http").createServer(app);
-const io = require("socket.io")(http);
+const server = http.createServer(app);
+const io = new Server(server);
 
-let currentVideo = "";
+app.use(express.static('public'));
 
-app.use(express.static("public"));
+let rooms = {};
 
-io.on("connection", (socket) => {
-
-  socket.on("join-room", (room) => {
-
+io.on('connection', (socket) => {
+  socket.on('join-room', ({ room, username }) => {
     socket.join(room);
+    socket.username = username;
 
-    if (currentVideo) {
-      socket.emit("video-change", {
-        url: currentVideo
-      });
+    if (!rooms[room]) {
+      rooms[room] = {
+        playlist: [],
+        currentIndex: 0
+      };
     }
 
+    io.to(room).emit('playlist-update', rooms[room]);
   });
 
-  socket.on("video-sync", (data) => {
-
-    socket.to(data.room).emit("video-sync", data);
-
+  socket.on('chat-message', ({ room, message }) => {
+    socket.to(room).emit('chat-message', {
+      username: socket.username,
+      message
+    });
   });
 
-  socket.on("video-change", (data) => {
-
-    currentVideo = data.url;
-
-    socket.to(data.room).emit("video-change", data);
-
+  socket.on('add-video', ({ room, video }) => {
+    rooms[room].playlist.push(video);
+    io.to(room).emit('playlist-update', rooms[room]);
   });
 
+  socket.on('select-video', ({ room, index }) => {
+    rooms[room].currentIndex = index;
+    io.to(room).emit('video-selected', { index });
+  });
 });
 
-const PORT = process.env.PORT || 3000;
-
-http.listen(PORT, () => {
-  console.log("Servidor listo");
-}); 
+server.listen(3000, () => console.log("Server running on port 3000"));
