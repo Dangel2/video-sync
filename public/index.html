@@ -2,27 +2,76 @@
 <html>
 <head>
   <title>Watch Party Pro</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: white;
+      text-align: center;
+    }
+
+    #app {
+      display: none;
+    }
+
+    input {
+      padding: 8px;
+      margin: 5px;
+    }
+
+    button {
+      padding: 8px 12px;
+      cursor: pointer;
+      background: #e50914;
+      color: white;
+      border: none;
+    }
+
+    #playlist li {
+      padding: 5px;
+      border-bottom: 1px solid #333;
+    }
+
+    #playlist li:hover {
+      background: #222;
+    }
+
+    #messages {
+      height: 150px;
+      overflow-y: auto;
+      border: 1px solid #333;
+      padding: 5px;
+    }
+  </style>
 </head>
+
 <body>
 
-<h2>Entrar</h2>
-<input id="usernameInput" placeholder="Tu nombre">
-<button id="joinBtn">Entrar</button>
+<div id="login">
+  <h2>Entrar</h2>
+  <input id="usernameInput" placeholder="Tu nombre">
+  <button id="joinBtn">Entrar</button>
+</div>
 
-<div id="app" style="display:none;">
-  <h3>Playlist</h3>
+<div id="app">
+
+  <h2>🎬 Watch Party</h2>
+
   <input id="titleInput" placeholder="Título">
-  <input id="urlInput" placeholder="YouTube URL">
+  <input id="urlInput" placeholder="Link YouTube">
   <button id="addBtn">Agregar</button>
 
   <ul id="playlist"></ul>
 
   <div id="player"></div>
 
-  <h3>Chat</h3>
-  <div id="messages" style="height:150px; overflow:auto;"></div>
-  <input id="chatInput">
+  <h3>💬 Chat</h3>
+  <div id="messages"></div>
+
+  <input id="chatInput" placeholder="Mensaje">
   <button id="sendBtn">Enviar</button>
+
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
