@@ -1,65 +1,70 @@
 const socket = io();
-const video = document.getElementById("video");
+let room = "default";
+let username = "";
+let playlist = [];
+let player;
 
-const room = window.location.pathname.split("/")[2] || "amor";
-const isHost = window.location.search.includes("clave=nestor123");
+document.getElementById("joinBtn").onclick = () => {
+  username = document.getElementById("usernameInput").value;
+  if (!username) return alert("Pon nombre");
 
-const VIDEO_URL = "https://www.dropbox.com/scl/fi/nm7oktyua2cyh5w0fzsr2/Eres-Tu.mp4?rlkey=g2amnedtxjhhbegxv4yxypayv&raw=1";
+  socket.emit("join-room", { room, username });
+  document.getElementById("app").style.display = "block";
+};
 
-video.src = VIDEO_URL;
-video.load();
-
-socket.emit("join-room", room);
-
-let syncing = false;
-
-function send(action) {
-  if (!isHost) return;
-  if (syncing) return;
-
-  socket.emit("video-sync", {
-    room,
-    action,
-    time: video.currentTime
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player("player", {
+    height: "360",
+    width: "640"
   });
 }
 
-if (isHost) {
-  video.addEventListener("play", () => send("play"));
-  video.addEventListener("pause", () => send("pause"));
-  video.addEventListener("seeked", () => send("seek"));
-}
+document.getElementById("addBtn").onclick = () => {
+  const title = document.getElementById("titleInput").value;
+  const url = document.getElementById("urlInput").value;
 
-if (!isHost) {
-  video.removeAttribute("controls");
-}
+  socket.emit("add-video", {
+    room,
+    video: { title, url }
+  });
+};
 
-const fullscreenBtn = document.getElementById("fullscreenBtn");
-fullscreenBtn.addEventListener("click", async () => {
-  try {
-    if (video.requestFullscreen) await video.requestFullscreen();
-    else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
-  } catch(e) {}
+socket.on("playlist-update", (data) => {
+  playlist = data.playlist;
+  renderPlaylist();
 });
 
-socket.on("video-sync", (data) => {
-  syncing = true;
+function renderPlaylist() {
+  const el = document.getElementById("playlist");
+  el.innerHTML = "";
 
-  if (data.action === "play") {
-    video.currentTime = data.time;
-    video.play().catch(() => {});
-  }
+  playlist.forEach((v, i) => {
+    const li = document.createElement("li");
+    li.textContent = v.title;
+    li.onclick = () => {
+      socket.emit("select-video", { room, index: i });
+    };
+    el.appendChild(li);
+  });
+}
 
-  if (data.action === "pause") {
-    video.currentTime = data.time;
-    video.pause();
-  }
+socket.on("video-selected", ({ index }) => {
+  const id = getYouTubeId(playlist[index].url);
+  if (id) player.loadVideoById(id);
+});
 
-  if (data.action === "seek") {
-    video.currentTime = data.time;
-  }
+function getYouTubeId(url) {
+  const match = url.match(/v=([^&]+)/);
+  return match ? match[1] : null;
+}
 
-  setTimeout(() => {
-    syncing = false;
-  }, 500);
+document.getElementById("sendBtn").onclick = () => {
+  const msg = document.getElementById("chatInput").value;
+  socket.emit("chat-message", { room, message: msg });
+};
+
+socket.on("chat-message", (data) => {
+  const div = document.createElement("div");
+  div.textContent = data.username + ": " + data.message;
+  document.getElementById("messages").appendChild(div);
 });
