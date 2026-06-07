@@ -1,104 +1,50 @@
-const socket = io();
 
-let room="default", username="", playlist=[], player;
+const socket=io(); let room="default",username="",playlist=[],player,currentProvider=null,myId=null;
+const isHost=new URLSearchParams(location.search).get("clave")==="nestor123";
+socket.on("connect",()=>myId=socket.id);
 
-// detectar host por clave
-const params = new URLSearchParams(window.location.search);
-const isHost = params.get("clave") === "nestor123";
-
-document.getElementById("joinBtn").onclick=()=>{
- username=document.getElementById("usernameInput").value;
- if(!username) return alert("Pon nombre");
-
- socket.emit("join-room",{room,username,isHost});
-
- document.getElementById("login").style.display="none";
- document.getElementById("app").style.display="block";
-
- if(isHost){
-   document.getElementById("controls").style.display="block";
+function detect(url){
+ if(/youtu\.?be/.test(url)) return {type:"youtube"};
+ if(url.includes("dropbox.com")) return {type:"html5",url:url.replace("dl=0","raw=1")};
+ if(url.includes("drive.google.com")){let m=url.match(/\/d\/([^/]+)/); return {type:"iframe",url:`https://drive.google.com/file/d/${m?.[1]}/preview`};}
+ if(/\.(mp4|webm)(\?|$)/i.test(url)||url.includes("raw=1")) return {type:"html5",url};
+ return {type:"iframe",url};
+}
+document.getElementById("joinBtn").onclick=()=>{username=usernameInput.value;if(!username)return;socket.emit("join-room",{room,username,isHost});login.style.display="none";app.style.display="block";if(isHost)controls.style.display="block";}
+function onYouTubeIframeAPIReady(){}
+addBtn.onclick=()=>{socket.emit("add-video",{room,video:{title:titleInput.value,url:urlInput.value}})}
+socket.on("playlist-update",d=>{playlist=d.playlist; render();})
+function render(){playlistEl=playlist=document.getElementById("playlist"); playlistEl.innerHTML=""; window.playlistData=playlist;
+ (socketPlaylist=arguments);}
+function render(){
+ const el=document.getElementById("playlist"); el.innerHTML="";
+ playlist.forEach((v,i)=>{let li=document.createElement("li"); li.textContent=v.title; li.onclick=()=>isHost&&socket.emit("select-video",{room,index:i}); el.append(li);});
+}
+socket.on("video-selected",({index})=>loadVideo(playlist[index]));
+function loadVideo(v){
+ if(!v)return; let p=detect(v.url); currentProvider=p.type;
+ player=document.getElementById("player");
+ if(p.type==="youtube"){
+  let id=(v.url.match(/(?:v=|be\/|shorts\/)([^&?/]+)/)||[])[1];
+  player.innerHTML=`<iframe src="https://www.youtube.com/embed/${id}?enablejsapi=1" allowfullscreen></iframe>`;
+  status.textContent="Si YouTube restringe la reproducción embebida, el video no podrá reproducirse aquí.";
+ }else if(p.type==="html5"){
+  player.innerHTML=`<video id="v" controls playsinline src="${p.url}"></video>`;
+  const vid=document.getElementById('v');
+  if(isHost){
+   ["play","pause","seeked"].forEach(ev=>vid.addEventListener(ev,()=>socket.emit("sync-state",{room,state:{playing:!vid.paused,time:vid.currentTime}})));
+  }
+ }else{
+  player.innerHTML=`<iframe src="${p.url}" allowfullscreen></iframe>`;
  }
-};
-
-function onYouTubeIframeAPIReady(){
- player=new YT.Player("player",{height:"360",width:"640"});
 }
-
-document.getElementById("addBtn").onclick=()=>{
- const title=document.getElementById("titleInput").value;
- const url=document.getElementById("urlInput").value;
-
- if(!title||!url) return;
-
- socket.emit("add-video",{room,video:{title,url}});
-
- document.getElementById("titleInput").value="";
- document.getElementById("urlInput").value="";
-};
-
-socket.on("playlist-update",(data)=>{
- playlist=data.playlist;
- renderPlaylist();
+socket.on("sync-state",s=>{
+ let v=document.getElementById('v'); if(!v||isHost)return;
+ if(Math.abs(v.currentTime-s.time)>2) v.currentTime=s.time;
+ s.playing?v.play():v.pause();
 });
-
-function renderPlaylist(){
- const el=document.getElementById("playlist");
- el.innerHTML="";
-
- playlist.forEach((v,i)=>{
-  const li=document.createElement("li");
-
-  const span=document.createElement("span");
-  span.textContent=v.title;
-
-  if(isHost){
-    span.onclick=()=>socket.emit("select-video",{room,index:i});
-  }
-
-  const btn=document.createElement("button");
-  btn.textContent="X";
-
-  if(isHost){
-    btn.onclick=(e)=>{
-      e.stopPropagation();
-      socket.emit("remove-video",{room,index:i});
-    };
-  } else {
-    btn.style.display="none";
-  }
-
-  li.appendChild(span);
-  li.appendChild(btn);
-  el.appendChild(li);
- });
-}
-
-socket.on("video-selected",({index})=>{
- const video=playlist[index];
- if(!video) return;
- const id=getYouTubeId(video.url);
- if(id) player.loadVideoById(id);
-});
-
-function getYouTubeId(url){
- if(url.includes("youtu.be/")) return url.split("youtu.be/")[1];
- const m=url.match(/v=([^&]+)/);
- return m?m[1]:null;
-}
-
-document.getElementById("sendBtn").onclick=()=>{
- const input=document.getElementById("chatInput");
- const msg=input.value;
- if(!msg) return;
-
- socket.emit("chat-message",{room,message:msg});
- input.value="";
-};
-
-socket.on("chat-message",(data)=>{
- const div=document.createElement("div");
- div.textContent=data.username+": "+data.message;
- const messages=document.getElementById("messages");
- messages.appendChild(div);
- messages.scrollTop=messages.scrollHeight;
+sendBtn.onclick=()=>{if(chatInput.value)socket.emit("chat-message",{room,message:chatInput.value}); chatInput.value="";}
+socket.on("chat-message",d=>{
+ let m=document.createElement("div"); m.className="msg "+(d.senderId===myId?"right":"left");
+ m.innerHTML=`<div class=name>${d.username}</div>${d.message}`; messages.append(m); messages.scrollTop=messages.scrollHeight;
 });
