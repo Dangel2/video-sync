@@ -12,13 +12,24 @@ function detect(url){
 }
 document.getElementById("joinBtn").onclick=()=>{username=usernameInput.value;if(!username)return;socket.emit("join-room",{room,username,isHost});login.style.display="none";app.style.display="block";if(isHost)controls.style.display="block";}
 function onYouTubeIframeAPIReady(){}
-addBtn.onclick=()=>{socket.emit("add-video",{room,video:{title:titleInput.value,url:urlInput.value}})}
+addBtn.onclick=()=>{if(!isHost)return;socket.emit("add-video",{room,video:{title:titleInput.value,url:urlInput.value}})}
 socket.on("playlist-update",d=>{playlist=d.playlist; render();})
 function render(){playlistEl=playlist=document.getElementById("playlist"); playlistEl.innerHTML=""; window.playlistData=playlist;
  (socketPlaylist=arguments);}
 function render(){
  const el=document.getElementById("playlist"); el.innerHTML="";
- playlist.forEach((v,i)=>{let li=document.createElement("li"); li.textContent=v.title; li.onclick=()=>isHost&&socket.emit("select-video",{room,index:i}); el.append(li);});
+ playlist.forEach((v,i)=>{
+   let li=document.createElement("li");
+   li.textContent=v.title+" ";
+   if(isHost){
+      let del=document.createElement("button");
+      del.textContent="Eliminar";
+      del.onclick=(e)=>{e.stopPropagation();socket.emit("remove-video",{room,index:i});};
+      li.appendChild(del);
+   }
+   li.onclick=()=>isHost&&socket.emit("select-video",{room,index:i});
+   el.append(li);
+ });
 }
 socket.on("video-selected",({index})=>loadVideo(playlist[index]));
 function loadVideo(v){
